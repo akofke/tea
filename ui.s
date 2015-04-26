@@ -61,6 +61,8 @@ Q_encrypt:	#Handles quick string encryption calls ### need to re-null terminate 
 
 	##need to chunk input, call encryptor
 
+	j Input
+
 Q_decrypt:	#Quick decryption calls ### need to re-null terminate string before outputting
 	la $a0, quick_decrypt
 	li $v0, 4
@@ -74,6 +76,8 @@ Q_decrypt:	#Quick decryption calls ### need to re-null terminate string before o
 	jal Get_key
 
 	##need to chunk input, call decryptor	
+
+	j Input
 
 F_encrypt:	#File encryption
 	la $a0, file_encrypt
@@ -89,6 +93,8 @@ F_encrypt:	#File encryption
 
 	##file reading, and then chunking for encryption input
 	##create a file to enter encrypted text into, just gets an appended title
+
+	j Input
 
 F_decrypt:	#File decryption
 	la $a0, file_decrypt
@@ -113,6 +119,8 @@ F_decrypt:	#File decryption
 
 	##file reading, and then chuinking for decryption input
 	##create a file to enter decrypted text into, specified by user input
+
+	j Input
 
 Error:	#Prints an error message
 	la $a0, error
