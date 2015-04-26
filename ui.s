@@ -3,22 +3,22 @@
 
 .data
 #Reserving space for user values
-key .space 16 #equal to 128 bits
-chunk .space 8 #equal to 64 bits
-quick .space 32 #32 character quick encryption string
-file_in .space 16 #16 char filename input buffer
-file_out .space 16 #16 char filename output buffer
+key: .space 16 #equal to 128 bits
+chunk: .space 8 #equal to 64 bits
+quick: .space 32 #32 character quick encryption string
+file_in: .space 16 #16 char filename input buffer
+file_out: .space 16 #16 char filename output buffer
 
 #Specifies the different console outputs
-ui_input .asciiz "Please enter a number for what you would like to do:\n 0: Quick Encryption\n 1: Quick Decryption\n 2: File Encryption\n 3: File Decryption\n 4: Quit\n"
-quick_encrypt .asciiz "\nEnter the string you would like to encrypt: "
-quick_decrypt .asciiz "\nEnter the encrypted text you would like to decrypt: "
-file_encrypt .asciiz "\nEnter the full name of the plain text file you would like to encrypt: "
-file_decrypt .asciiz "\nEnter the full name of the encrypted file you would like to decrypt: "
-decrypt_out .asciiz "\nEnter the full name of the file you would like to output decryted text to: "
-user_key .asciiz "\nType in a key for use in encryption, which can be up to 16 characters. (Don't forget it!): "
-error .asciiz "\nYou did not enter a correct input. Please quit and try again."
-exit_msg .asciiz "\nThe program is now closing."
+ui_input: .asciiz "Please enter a number for what you would like to do:\n 0: Quick Encryption\n 1: Quick Decryption\n 2: File Encryption\n 3: File Decryption\n 4: Quit\n"
+quick_encrypt: .asciiz "\nEnter the string you would like to encrypt: "
+quick_decrypt: .asciiz "\nEnter the encrypted text you would like to decrypt: "
+file_encrypt: .asciiz "\nEnter the full name of the plain text file you would like to encrypt: "
+file_decrypt: .asciiz "\nEnter the full name of the encrypted file you would like to decrypt: "
+decrypt_out: .asciiz "\nEnter the full name of the file you would like to output decryted text to: "
+user_key: .asciiz "\nType in a key for use in encryption, which can be up to 16 characters. (Don't forget it!): "
+error: .asciiz "\nYou did not enter a correct input. Please quit and try again."
+exit_msg: .asciiz "\nThe program is now closing."
 
 .text
 main:
