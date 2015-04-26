@@ -2,14 +2,14 @@
 #The user inputs a number to select the program action
 
 .data
-/* Reserving space for user values */
+#Reserving space for user values
 key .space 16 #equal to 128 bits
 chunk .space 8 #equal to 64 bits
 quick .space 32 #32 character quick encryption string
 file_in .space 16 #16 char filename input buffer
 file_out .space 16 #16 char filename output buffer
 
-/* Specifies the different console outputs */
+#Specifies the different console outputs
 ui_input .asciiz "Please enter a number for what you would like to do:\n 0: Quick Encryption\n 1: Quick Decryption\n 2: File Encryption\n 3: File Decryption\n 4: Quit\n"
 quick_encrypt .asciiz "\nEnter the string you would like to encrypt: "
 quick_decrypt .asciiz "\nEnter the encrypted text you would like to decrypt: "
@@ -22,7 +22,7 @@ exit_msg .asciiz "\nThe program is now closing."
 
 .text
 main:
-Input:	/* Asks user for input, does appropriate routing of program */
+Input:	#Asks user for input, does appropriate routing of program
 	la $a0, ui_input
 	li $v0, 4
 	syscall #generates initial input query
@@ -47,7 +47,7 @@ Input:	/* Asks user for input, does appropriate routing of program */
 
 	j Error
 
-Q_encrypt:	/* Handles quick string encryption calls */ ### need to re-null terminate string before outputting
+Q_encrypt:	#Handles quick string encryption calls ### need to re-null terminate string before outputting
 	la $a0, quick_encrypt
 	li $v0, 4
 	syscall
@@ -61,7 +61,7 @@ Q_encrypt:	/* Handles quick string encryption calls */ ### need to re-null termi
 
 	##need to chunk input, call encryptor
 
-Q_decrypt:	/* Quick decryption calls */ ### need to re-null terminate string before outputting
+Q_decrypt:	#Quick decryption calls ### need to re-null terminate string before outputting
 	la $a0, quick_decrypt
 	li $v0, 4
 	syscall
@@ -75,7 +75,7 @@ Q_decrypt:	/* Quick decryption calls */ ### need to re-null terminate string bef
 
 	##need to chunk input, call decryptor	
 
-F_encrypt:	/* File encryption */
+F_encrypt:	#File encryption
 	la $a0, file_encrypt
 	li $v0, 4
 	syscall #prompts for input file name
@@ -90,7 +90,7 @@ F_encrypt:	/* File encryption */
 	##file reading, and then chunking for encryption input
 	##create a file to enter encrypted text into, just gets an appended title
 
-F_decrypt:	/* File decryption */
+F_decrypt:	#File decryption
 	la $a0, file_decrypt
 	li $v0, 4
 	syscall #prompts for input file name
@@ -114,14 +114,14 @@ F_decrypt:	/* File decryption */
 	##file reading, and then chuinking for decryption input
 	##create a file to enter decrypted text into, specified by user input
 
-Error:	/* Prints an error message */
+Error:	#Prints an error message
 	la $a0, error
 	li $v0, 4
 	syscall
 
 	j Input
 
-Exit: 	/* Exits the programme */
+Exit: 	#Exits the programme
 	la $a0, exit_msg
 	li $v0, 4
 	syscall
@@ -129,7 +129,7 @@ Exit: 	/* Exits the programme */
 	li $v0, 10
 	syscall #exits
 
-Get_key:/* asks for the user's key, returns the value in $v0 */
+Get_key:	#asks for the user's key, returns the value in $v0
 	la $a0, user_key
 	li $v0, 4
 	syscall #asks for user key
