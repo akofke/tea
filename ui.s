@@ -5,9 +5,10 @@
 #Reserving space for user values
 key: .space 16 #equal to 128 bits
 chunk: .space 8 #equal to 64 bits
-quick: .space 32 #32 character quick encryption string
-file_in: .space 16 #16 char filename input buffer
-file_out: .space 16 #16 char filename output buffer
+quick: .space 33 #32 character quick encryption string
+file_in: .space 17 #16 char filename input buffer
+file_out: .space 17 #16 char filename output buffer
+ret_addr: .space 4 #holds return address for func calls, protects when calling encryptor/file-io
 
 #Specifies the different console outputs
 ui_input: .asciiz "Please enter a number for what you would like to do:\n 0: Quick Encryption\n 1: Quick Decryption\n 2: File Encryption\n 3: File Decryption\n 4: Quit\n"
@@ -59,7 +60,12 @@ Q_encrypt:	#Handles quick string encryption calls ### need to re-null terminate 
 	
 	jal Get_key
 
-	##need to chunk input, call encryptor
+	addi $s0, $zero, 1 #s0 is not zero, so encrypt
+	jal QuickChunker
+
+	la $a0, quick
+	li $v0, 4
+	syscall
 
 	j Input
 
@@ -75,7 +81,12 @@ Q_decrypt:	#Quick decryption calls ### need to re-null terminate string before o
 
 	jal Get_key
 
-	##need to chunk input, call decryptor	
+	add $s0, $zero, $zero #s0 is zero, so decrypt
+	jal QuickChunker	
+
+	la $a0, quick
+	li $v0, 4
+	syscall
 
 	j Input
 
@@ -146,4 +157,60 @@ Get_key:	#asks for the user's key, returns the value in $v0
 	li $a1, 17
 	li $v0, 8
 	syscall #reads key
+	jr $ra
+
+QuickChunk:	#Creates 64b chunks, and passes them to the encryptor.
+	sw $ra, ret_addr #stores return address
+	add $t0, $zero, $zero #counter within string
+	add $t1, $zero, $zero #counter within a chunk
+
+	j ChunkLoop
+	
+ChunkLoop:
+	lw $t2, $t0(quick)
+	addi $t0, $t0, 4
+	sw $t2, $t1(chunk)
+	addi $t1, $t1, 4
+	#moves a byte from current chunk into chunk buffer
+
+	addi $t7, $zero, 8
+	beq $t1, $t7, ChunkDone #branches after loading 2 32b sections from quick
+	j ChunkLoop
+
+ChunkDone:	#chunk completely loaded. send to encryptor
+		#if $t0(quick) (pointing to head of new chunk) is null terminator, finished
+	##send chunk
+	la $a0, key
+	la $a1, chunk
+
+	##if $s0 is equal to 0 (set before func call) then we are decrypting
+	##else, execute encryption
+	beq $s0, $zero, ChunkDecrypt
+
+	jal tea_encrypt
+	j ChunkSwap
+
+ChunkDecrypt:
+	jal tea_decrypt
+	j ChunkSwap
+
+ChunkSwap:
+	##save encrypted chunk from buffer
+	##currently will replace the original section with the encrypted chunk
+	lw $t5, 0(chunk)
+	addi $t4, $t0, -8 #backstep 2 words
+	sw $t5, $t4(quick) #save first word
+
+	lw $t5, 4(chunk)
+	addi $t4, $t4, 4
+	sw $t5, $t4(quick) #save second word
+
+	lb $t6, $t0(quick) #sign extends next byte in quick string while loading
+	beq $t6, $zero, ChunkExit #exits chunking function when next section starts with null-terminator
+	
+	add $t1, $zero, $zero
+	j ChunkLoop #continues chunking
+
+ChunkExit:	#reached a null terminator-charactor
+	lw $ra, ret_addr
 	jr $ra
