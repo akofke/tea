@@ -82,7 +82,7 @@ Q_decrypt:	#Quick decryption calls ### need to re-null terminate string before o
 	jal Get_key
 
 	add $s0, $zero, $zero #s0 is zero, so decrypt
-	jal QuickChunker	
+	jal QuickChunk
 
 	la $a0, quick
 	li $v0, 4
