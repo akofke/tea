@@ -1,13 +1,13 @@
     .data
 key: .word 234, 252, 2135, 2356
 
-value: .word 53, 26
+value: .word 54, 26
 
 newline: .asciiz "\n"
 
     .text
     .globl main
-_test_main:
+main:
 
     la $a0, key
     la $a1, value
@@ -38,7 +38,7 @@ tea_encrypt:
     addi $sp, $sp, -4
     sw $ra, 0($sp)
 
-    addi $sp, $sp, -20
+    addi $sp, $sp, -24
     sw $s0, 0($sp)
     sw $s1, 4($sp)
     sw $s2, 8($sp)
@@ -62,7 +62,8 @@ tea_encrypt:
 encrypt_loop:
 
     # sum += delta
-    addiu $s2, $s2, 0x9e3779b9
+    li $t0, 0x9e3779b9
+    addu $s2, $s2, $t0
 
     move $a0, $s1       #v1 
     lw $a1, 0($s4)      #k0
@@ -110,8 +111,8 @@ tea_decrypt:
     lw $s1, 4($a1)      #v1
 
     # memory addresses of key and value array
-    move $s4, $a0
-    move $s5, $a1
+    move $s4, $a0 	#key
+    move $s5, $a1	#value
 
     li $s2, 0xC6EF3720           #sum
 
@@ -133,6 +134,10 @@ decrypt_loop:
 
     jal feistel_round
     subu $s1, $s1, $v0
+
+    li $t0, 0x9e3779b9
+    subu $s2, $s2, $t0
+
 
     addi $s3, $s3, -1
     bgtz $s3, decrypt_loop
@@ -157,8 +162,16 @@ feistel_round:
 
 
 done:
-    sw $t0, 0($a1)
-    sw $t1, 4($a1)
+    sw $s0, 0($s5)
+    sw $s1, 4($s5)
+    
+    lw $s5, 20($sp)
+    lw $s4, 16($sp)
+    lw $s3, 12($sp)
+    lw $s2, 8($sp)
+    lw $s1, 4($sp)
+    lw $s0, 0($sp)
+    addi $sp, $sp, 24
 
     lw $ra, 0($sp)
     addi $sp, $sp, 4
