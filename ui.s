@@ -160,7 +160,8 @@ Get_key:	#asks for the user's key, returns the value in $v0
 	jr $ra
 
 QuickChunk:	#Creates 64b chunks, and passes them to the encryptor.
-	sw $ra, ret_addr #stores return address
+	la $a2, ret_addr
+	sw $ra, 0($a2) #stores return address
 	add $t0, $zero, $zero #counter within string
 	add $t1, $zero, $zero #counter within a chunk
 
@@ -216,5 +217,6 @@ ChunkSwap:
 	j ChunkLoop #continues chunking
 
 ChunkExit:	#reached a null terminator-charactor
-	lw $ra, ret_addr
+	la $a2, ret_addr
+	lw $ra, 0($a2)
 	jr $ra
