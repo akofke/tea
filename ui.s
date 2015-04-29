@@ -60,7 +60,12 @@ Q_encrypt:	#Handles quick string encryption calls ### need to re-null terminate 
 	
 	jal Get_key
 
-	##need to chunk input, call encryptor
+	addi $s0, $zero, 1 #s0 is not zero, so encrypt
+	jal QuickChunker
+
+	la $a0, quick
+	li $v0, 4
+	syscall
 
 	j Input
 
@@ -76,7 +81,12 @@ Q_decrypt:	#Quick decryption calls ### need to re-null terminate string before o
 
 	jal Get_key
 
-	##need to chunk input, call decryptor	
+	add $s0, $zero, $zero #s0 is zero, so decrypt
+	jal QuickChunker	
+
+	la $a0, quick
+	li $v0, 4
+	syscall
 
 	j Input
 
@@ -172,8 +182,19 @@ ChunkDone:	#chunk completely loaded. send to encryptor
 	##send chunk
 	la $a0, key
 	la $a1, chunk
-	jal tea_encrypt
 
+	##if $s0 is equal to 0 (set before func call) then we are decrypting
+	##else, execute encryption
+	beq $s0, $zero, ChunkDecrypt
+
+	jal tea_encrypt
+	j ChunkSwap
+
+ChunkDecrypt:
+	jal tea_decrypt
+	j ChunkSwap
+
+ChunkSwap:
 	##save encrypted chunk from buffer
 	##currently will replace the original section with the encrypted chunk
 	lw $t5, 0(chunk)
