@@ -170,9 +170,13 @@ QuickChunk:	#Creates 64b chunks, and passes them to the encryptor.
 ChunkLoop:
 	la $a2, chunk
 	la $a3, quick
-	lw $t2, $t0($a3)
+
+	addu $a3, $a3, $t0
+	lw $t2, 0($a3)
 	addi $t0, $t0, 4
-	sw $t2, $t1($a2)
+
+	addu $a2, $a2, $t1
+	sw $t2, 0($a2)
 	addi $t1, $t1, 4
 	#moves a byte from current chunk into chunk buffer
 
@@ -204,13 +208,16 @@ ChunkSwap:
 	la $a3, quick
 	lw $t5, 0($a2)
 	addi $t4, $t0, -8 #backstep 2 words
-	sw $t5, $t4($a3) #save first word
+	addu $a3, $a3, $t4
+	sw $t5, 0($a3) #save first word
 
 	lw $t5, 4($a2)
-	addi $t4, $t4, 4
-	sw $t5, $t4($a3) #save second word
+	addi $a3, $a3, 4
+	sw $t5, 0($a3) #save second word
 
-	lb $t6, $t0($a3) #sign extends next byte in quick string while loading
+	la $a3, quick
+	addu $a3, $a3, $t0
+	lb $t6, 0($a3) #sign extends next byte in quick string while loading
 	beq $t6, $zero, ChunkExit #exits chunking function when next section starts with null-terminator
 	
 	add $t1, $zero, $zero
