@@ -6,8 +6,8 @@ value: .word 54, 26
 newline: .asciiz "\n"
 
     .text
-    .globl main
-main:
+    .global tea_main
+tea_main:
 
     la $a0, key
     la $a1, value
@@ -33,7 +33,7 @@ exit:
 
 
 
-    .globl tea_encrypt
+    .global tea_encrypt
 tea_encrypt:
     addi $sp, $sp, -4
     sw $ra, 0($sp)
@@ -94,7 +94,7 @@ encrypt_loop:
 
 
 
-    .globl tea_decrypt
+    .global tea_decrypt
 tea_decrypt:
     addi $sp, $sp, -4
     sw $ra, 0($sp)

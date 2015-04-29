@@ -22,6 +22,9 @@ error: .asciiz "\nYou did not enter a correct input. Please quit and try again."
 exit_msg: .asciiz "\nThe program is now closing."
 
 .text
+.global tea_encrypt
+.global tea_decrypt
+.global main
 main:
 Input:	#Asks user for input, does appropriate routing of program
 	la $a0, ui_input
