@@ -5,26 +5,24 @@
 #Reserving space for user values
 key: .space 16 #equal to 128 bits
 chunk: .space 8 #equal to 64 bits
-.align 2
 quick: .space 32 #32 character quick encryption string
-.align 2
 file_in: .space 16 #16 char filename input buffer
-.align 2
 file_out: .space 16 #16 char filename output buffer
-.align 2
 ret_addr: .space 4 #holds return address for func calls, protects when calling encryptor/file-io
-.align 2
+buffer: .space 8 #file buffer
 
 #Specifies the different console outputs
 ui_input: .asciiz "Please enter a number for what you would like to do:\n 0: Quick Encryption\n 1: Quick Decryption\n 2: File Encryption\n 3: File Decryption\n 4: Quit\n"
 quick_encrypt: .asciiz "\nEnter the string you would like to encrypt: "
 quick_decrypt: .asciiz "\nEnter the encrypted text you would like to decrypt: "
-file_encrypt: .asciiz "\nEnter the full name of the plain text file you would like to encrypt: "
-file_decrypt: .asciiz "\nEnter the full name of the encrypted file you would like to decrypt: "
-decrypt_out: .asciiz "\nEnter the full name of the file you would like to output decryted text to: "
+file_encrypt: .asciiz "\nEnter the full name of the plain text file you would like to encrypt: (15 chars or less)"
+file_decrypt: .asciiz "\nEnter the full name of the encrypted file you would like to decrypt: (15 chars or less)"
+decrypt_out: .asciiz "\nEnter the full name of the file you would like to output text to: "
 user_key: .asciiz "\nType in a key for use in encryption, which can be up to 16 characters. (Don't forget it!): "
 error: .asciiz "\nYou did not enter a correct input. Please quit and try again."
 exit_msg: .asciiz "\nThe program is now closing."
+file_name_in: .asciiz "encrypt.txt"
+file_name_out: .asciiz "secure.txt"
 
 .text
 main:
@@ -105,11 +103,21 @@ F_encrypt:	#File encryption
 	li $v0, 8
 	syscall #grabbing filename to encrypt
 
+	la $a0, decrypt_out
+	li $v0, 4
+	syscall #prompt for output file
+	
+	li $a1, 16
+	la $a0, file_out
+	li $v0, 8
+	syscall
+	
 	jal Get_key
 
+	add $t0, $zero, $zero #encrypting
 	##file reading, and then chunking for encryption input
 	##create a file to enter encrypted text into, just gets an appended title
-
+	jal openread
 	j Input
 
 F_decrypt:	#File decryption
@@ -133,9 +141,11 @@ F_decrypt:	#File decryption
 
 	jal Get_key
 
+	addi $t0, $zero, 1 #decrypting
 	##file reading, and then chuinking for decryption input
 	##create a file to enter decrypted text into, specified by user input
 
+	jal openread
 	j Input
 
 Error:	#Prints an error message
@@ -205,7 +215,6 @@ ChunkDone:	#chunk completely loaded. send to encryptor
 	j ChunkSwap
 
 ChunkDecrypt:
-	jal tea_decrypt
 	j ChunkSwap
 
 ChunkSwap:
@@ -235,8 +244,12 @@ ChunkSwap:
 	j ChunkLoop #continues chunking
 
 ChunkExit:	#reached a null terminator-charactor
+	#lw $ra, ret_addr
 	jr $ra
 
+################################	
+### beginning of encryption code
+################################	
 	.globl tea_encrypt
 tea_encrypt:
     addi $sp, $sp, -4
@@ -380,3 +393,107 @@ done:
     lw $ra, 0($sp)
     addi $sp, $sp, 4
     jr $ra
+	
+########################
+###beginning of file IO#
+########################
+openread:
+	#Open file for reading
+	li   $v0, 13       
+	la   $a0, file_name_in     # output file name
+	li   $a1, 0        # flag for reading
+	li   $a2, 0        # mode (dont worry about this)
+	syscall            # open file
+	  
+	move $s6, $v0      # moves file descriptor from $v0 to $s6
+
+	j openwrite
+ 
+  
+openwrite:
+	# Open file for writing (does not have to exist)
+	li   $v0, 13       
+	la   $a0, file_name_out     # output file name
+	li   $a1, 1        # flag for writing
+	li   $a2, 0        # mode 
+	syscall            # open file
+  
+	move $s5, $v0      # moves file descriptor from $v0 to $s6    
+  
+	j read
+  
+read:
+	#Read from file
+	li   $v0, 14       
+	move $a0, $s6      # file descriptor 
+	la   $a1, buffer   # address of buffer to which to read
+	li   $a2, 8       # max characters to read
+	syscall            # read from file
+
+	#Part of read, store number characters read in another register
+	la $s0, ($v0)       #0 if end of file, negative if error. will be used to check look
+
+	#loads buffer for encryption / decryption
+	la $a0, key
+	la $a1, buffer
+	beq $t0, $zero, file_enc
+	j file_dec
+	
+file_enc:
+	addi $sp, $sp, -8
+	sw $ra, 0($sp)
+	sw $t0, 4($sp)
+	jal tea_encrypt
+	
+	lw $ra, 0($sp)
+	lw $t0, 4($sp)
+	addi $sp, $sp, 8
+	
+	j write
+
+file_dec:
+	addi $sp, $sp, -8
+	sw $ra, 0($sp)
+	sw $t0, 4($sp)
+	jal tea_decrypt
+	
+	lw $ra, 0($sp)
+	lw $t0, 4($sp)
+	addi $sp, $sp, 8
+	
+	j write
+	
+write:
+  # Write to file 
+  
+  blez $s0, closeread #first check to see if we're at the end
+  
+  li   $v0, 15       # system call for write to file
+  move $a0, $s5      # file descriptor 
+  
+  la   $a1, buffer   # address of buffer 
+  li   $a2, 8        # write length
+  syscall            # write to file   
+  
+  ## clears the buffer
+  la $t1, buffer
+  sw $zero, 0($t1)
+  sw $zero, 4($t1)
+  
+  j read 
+  
+closeread:
+  # Close the file 
+  li   $v0, 16       # system call for close file 
+  move $a0, $s6      # file descriptor to close
+  syscall            # close file
+  
+  j closewrite
+  
+closewrite:
+  # Close the file 
+  li   $v0, 16       # system call for close file
+  move $a0, $s5      # file descriptor to close
+  syscall            # close file
+  
+  j Input	
