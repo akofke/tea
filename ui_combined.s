@@ -67,7 +67,7 @@ Q_encrypt:	#Handles quick string encryption calls ### need to re-null terminate 
 	jal QuickChunk
 
 	la $a0, quick
-	li $v0, 4
+	li $v0, 1
 	syscall
 
 	j Input
@@ -215,6 +215,7 @@ ChunkDone:	#chunk completely loaded. send to encryptor
 	j ChunkSwap
 
 ChunkDecrypt:
+	jal tea_decrypt
 	j ChunkSwap
 
 ChunkSwap:
