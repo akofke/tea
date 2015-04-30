@@ -1,39 +1,39 @@
     .data
-key: .word 234, 252, 2135, 2356
+#key: .word 234, 252, 2135, 2356
 
-value: .word 54, 26
+#value: .word 54, 26
 
 newline: .asciiz "\n"
 
     .text
-    .global tea_main
-tea_main:
+#    .globl tea_main
+#tea_main:
+#
+#    la $a0, key
+#    la $a1, value
+#
+#    jal tea_encrypt
+#
+#    la $t0, value
+#    lw $a0, 0($t0)
+#    li $v0, 1
+#    syscall
+#    
+#    la $t0, value
+#    lw $a0, 4($t0)
+#    li $v0, 1
+#    syscall
+#
+#
+#    j exit
+#
+#exit:
+#    li $v0, 10
+#    syscall
 
-    la $a0, key
-    la $a1, value
-
-    jal tea_encrypt
-
-    la $t0, value
-    lw $a0, 0($t0)
-    li $v0, 1
-    syscall
-    
-    la $t0, value
-    lw $a0, 4($t0)
-    li $v0, 1
-    syscall
 
 
-    j exit
-
-exit:
-    li $v0, 10
-    syscall
-
-
-
-    .global tea_encrypt
+    .globl tea_encrypt
 tea_encrypt:
     addi $sp, $sp, -4
     sw $ra, 0($sp)
@@ -94,7 +94,7 @@ encrypt_loop:
 
 
 
-    .global tea_decrypt
+    .globl tea_decrypt
 tea_decrypt:
     addi $sp, $sp, -4
     sw $ra, 0($sp)
