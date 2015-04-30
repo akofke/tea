@@ -99,7 +99,7 @@ tea_decrypt:
     addi $sp, $sp, -4
     sw $ra, 0($sp)
 
-    addi $sp, $sp, -20
+    addi $sp, $sp, -24
     sw $s0, 0($sp)
     sw $s1, 4($sp)
     sw $s2, 8($sp)
