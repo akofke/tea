@@ -133,7 +133,7 @@ decrypt_loop:
     move $a3, $s2
 
     jal feistel_round
-    subu $s1, $s1, $v0
+    subu $s0, $s0, $v0
 
     li $t0, 0x9e3779b9
     subu $s2, $s2, $t0
