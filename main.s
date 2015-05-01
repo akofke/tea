@@ -4,6 +4,8 @@
 key: .space 16
 block: .space 8
 
+decrypt_buffer: .space 8
+
 input_filename: .space 255
 output_filename: .space 259
 cyphertext_extension: .asciiz ".tea"
@@ -85,30 +87,63 @@ file_decrypt:
 	jal open_file_write
 	move $s1, $v0
 	
+	READ_BLOCK($s0, block)
 	b file_decrypt_loop
 	
 	
 file_encrypt_loop:
 	READ_BLOCK($s0)
-	beqz $v0, file_done
-	
+	bne $v0, 8, pad_eof	# if 8 bytes were read, we haven't reached the eof
+
+	# run block through encryption algorithm
 	la $a0, key
 	la $a1, block
 	jal tea_encrypt
 	
+	# write encrypted block to output file
 	WRITE_BLOCK($s1)
 	b file_encrypt_loop
+	
+pad_eof:
+	li $t2, 8
+	sub $t0, $t2, $v0		#number of bytes needed to pad block to 8 bytes
+	move $t1, $v0		# index of first empty byte
+pad_loop:
+	sb $t0, block($t1)	# pad remainder of block with the number of leftover bytes e.g. "e n d \n 00 00 00 00" becomes "e n d \n 04 04 04 04"
+	addi $t1, $t1, 1
+	beq $t1, 8, pad_done
+	b pad_loop
+pad_done:
+	#encrypt and write final block
+	la $a0, key
+	la $a1, block
+	jal tea_encrypt
+	WRITE_BLOCK($s1)
+	b file_done
 
 file_decrypt_loop:
-	READ_BLOCK($s0)
-	beqz $v0, file_done
 	
 	la $a0, key
 	la $a1, block
 	jal tea_decrypt
 	
-	WRITE_BLOCK($s1)
+	READ_BLOCK($s0, decrypt_buffer)
+	beqz $v0, strip_padding
+	
+	WRITE_BLOCK($s1, 8)
+	
+	STR_COPY(block, decrypt_buffer, 8)
+	
 	b file_decrypt_loop
+strip_padding:
+	lb $t0, block+7	#get the last byte of the block, its value will be the number of bytes to strip
+	li $t1, 8
+	sub $a2, $t1, $t0	# subtract number of padding bytes from 8 to get the correct number of bytes to write
+	WRITE_BLOCK($s1, $a2)
+	
+	b file_done
+	
+
 
 file_done:
 	CLOSE_FILE($s0)

@@ -67,9 +67,9 @@ no_err:
 	nop #keep going
 .end_macro
 
-.macro READ_BLOCK(%fd)
+.macro READ_BLOCK(%fd, %label)
 	move $a0, %fd	#file descriptor
-	la $a1, block
+	la $a1, %label
 	li $a2, 8	#read 8 bytes into block
 	li $v0, 14	#read from file
 	syscall
@@ -77,14 +77,24 @@ no_err:
 	CHECK_FILE_ERROR
 .end_macro
 
-.macro WRITE_BLOCK(%fd)
+.macro READ_BLOCK(%fd)
+	READ_BLOCK(%fd, block)
+.end_macro
+
+
+
+.macro WRITE_BLOCK(%fd, %bytes)
 	move $a0, %fd
 	la $a1, block
-	li $a2, 8
+	add $a2, $zero, %bytes
 	li $v0, 15	#write to file
 	syscall
 	
 	CHECK_FILE_ERROR
+.end_macro
+
+.macro WRITE_BLOCK(%fd)
+	WRITE_BLOCK(%fd, 8)
 .end_macro
 
 .macro CLOSE_FILE(%fd)
@@ -92,6 +102,17 @@ no_err:
 	li $v0, 16	#close file
 	syscall
 .end_macro
+
+.macro STR_COPY(%to, %from, %len)
+	li $t0, 0
+copy_loop:
+	lb $t1, %from($t0)
+	sb $t1, %to($t0)
+	addi $t0, $t0, 1
+	blt $t0, %len, copy_loop
+.end_macro
+	
+
 	
 		
 
