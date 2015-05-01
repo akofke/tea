@@ -47,7 +47,7 @@ encrypt_loop:
 
     	move $a0, $s0       	#v0
     	lw $a1, 8($s4)      	#k2
-    	lw $a1, 12($s4)     	#k3
+    	lw $a2, 12($s4)     	#k3
     	move $a3, $s2		#sum
 
 	# v1 += ((v0 << 4) + k2) ^ (v0 + sum) ^ ((v0 >> 5) +k3)
