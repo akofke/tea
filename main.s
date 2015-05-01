@@ -7,7 +7,7 @@ block: .space 8
 decrypt_buffer: .space 8
 
 input_filename: .space 255
-output_filename: .space 259
+output_filename: .space 259 
 cyphertext_extension: .asciiz ".tea"
 
 
@@ -153,7 +153,8 @@ file_done:
 	PRINT_STR(output_filename)
 	PRINT_STR(newline)
 	
-	b main
+	# b main
+	EXIT(0)
 	
 open_file_read:
 	la $a0, input_filename
