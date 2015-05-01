@@ -1,3 +1,4 @@
+	.include "macros.s"
 
     .data
     .globl key, block
@@ -11,21 +12,22 @@ block: .space 8
 # 32 character input string for quick encrpytion and decryption
 quick_input: .space 32
 
-ret_addr: .space 4 #holds return address for func calls, protects when calling encryptor/file-io
-
 	.globl buffer
 buffer: .space 8 #file buffer
 
 #Specifies the different console outputs
-ui_input: .asciiz "Please enter a number for what you would like to do:\n 0: Quick Encryption\n 1: Quick Decryption\n 2: File Encryption\n 3: File Decryption\n 4: Quit\n"
-quick_encrypt: .asciiz "\nEnter the string you would like to encrypt: "
-quick_decrypt: .asciiz "\nEnter the encrypted text you would like to decrypt: "
+ui_input_msg: .asciiz "Please enter a number for what you would like to do:\n 0: Quick Encryption\n 1: Quick Decryption\n 2: File Encryption\n 3: File Decryption\n 4: Quit\n"
+quick_encrypt_msg: .asciiz "\nEnter the string you would like to encrypt: "
+quick_decrypt_msg: .asciiz "\nEnter the encrypted text you would like to decrypt: "
+quick_cyphertext_msg: .asciiz "Your cyphertext is: \n"
+
 file_encrypt: .asciiz "\nThe file being encrypted should be encrypt.txt"
 file_decrypt: .asciiz "\nThe file being decrypted should be secure.txt"
 decrypt_out: .asciiz "\nThe decrypted text will go into the file cracked.txt"
-user_key: .asciiz "\nType in a key for use in encryption, which can be up to 16 characters. (Don't forget it!): "
+user_key_promt: .asciiz "\nType in a key for use in encryption, which can be up to 16 characters. (Don't forget it!): "
 error: .asciiz "\nYou did not enter a correct input. Please quit and try again."
 exit_msg: .asciiz "\nThe program is now closing."
+newline: .asciiz "\n"
 
 	.globl file_enc_in, file_enc_out, file_dec_in, file_dec_out
 file_enc_in: .asciiz "encrypt.txt"
@@ -33,12 +35,14 @@ file_enc_out: .asciiz "secure.txt"
 file_dec_in: .asciiz "secure.txt"
 file_dec_out: .asciiz "cracked.txt"
 
+
     .text
 
     .globl main
 main:
+
 	#Asks user for input, does appropriate routing of program
-	la $a0, ui_input
+	la $a0, ui_input_msg
 	li $v0, 4
 	syscall #generates initial input query
 
@@ -46,10 +50,10 @@ main:
 	syscall #grabbing user's integer input, value will be in $v0
 
 	add $t0, $zero, $zero
-	beq $t0, $v0, Q_encrypt #branches to quick encrypt portion
+	beq $t0, $v0, quick_encrypt #branches to quick encrypt portion
 
 	addi $t0, $zero, 1
-	beq $t0, $v0, Q_decrypt #branches to quick decrypt portion
+	beq $t0, $v0, quick_decrypt #branches to quick decrypt portion
 
 	addi $t0, $zero, 2
 	#beq $t0, $v0, F_encrypt #branches to file encrypt portion
@@ -63,8 +67,8 @@ main:
 	j Error
 
     
-Q_encrypt:	#Handles quick string encryption calls ### need to re-null terminate string before outputting
-	la $a0, quick_encrypt
+quick_encrypt:	#Handles quick string encryption calls ### need to re-null terminate string before outputting
+	la $a0, quick_encrypt_msg
 	li $v0, 4
 	syscall
 
@@ -78,14 +82,16 @@ Q_encrypt:	#Handles quick string encryption calls ### need to re-null terminate 
 	addi $s0, $zero, 1 #s0 is not zero, so encrypt
 	jal QuickChunk
 
-	la $a0, quick_input
-	li $v0, 1
-	syscall
+	PRINT_STR(quick_cyphertext_msg)
+	PRINT_STR(quick_input)
+	PRINT_STR(newline)
+	# MESSAGE_DIALOG_STR(quick_cyphertext_msg, quick_input)
+	
 
 	j main
 
-Q_decrypt:	#Quick decryption calls ### need to re-null terminate string before outputting
-	la $a0, quick_decrypt
+quick_decrypt:	#Quick decryption calls ### need to re-null terminate string before outputting
+	la $a0, quick_decrypt_msg
 	li $v0, 4
 	syscall
 
@@ -99,9 +105,8 @@ Q_decrypt:	#Quick decryption calls ### need to re-null terminate string before o
 	add $s0, $zero, $zero #s0 is zero, so decrypt
 	jal QuickChunk
 
-	la $a0, quick_input
-	li $v0, 4
-	syscall
+	PRINT_STR(quick_input)
+	PRINT_STR(newline)
 
 	j main
 
@@ -152,7 +157,7 @@ Exit: 	#Exits the programme
 	syscall #exits
 
 Get_key:	#asks for the user's key, returns the value in $v0
-	la $a0, user_key
+	la $a0, user_key_promt
 	li $v0, 4
 	syscall #asks for user key
 
