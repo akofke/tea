@@ -1,4 +1,6 @@
 *.swp
 *.jar
 .DS_Store
+main*
+test*
 

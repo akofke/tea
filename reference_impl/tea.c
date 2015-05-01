@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
  
 void encrypt (uint32_t* v, uint32_t* k) {
     uint32_t v0=v[0], v1=v[1], sum=0, i;           /* set up */
@@ -25,12 +26,23 @@ void decrypt (uint32_t* v, uint32_t* k) {
     v[0]=v0; v[1]=v1;
 }
 
-int main() {
-    uint32_t v[2] = {53, 26};
-    uint32_t k[4] = {234, 252, 2135, 2356};
+int main(int argc, char *argv[]) {
+    uint32_t v[2];
+    uint32_t k[4] = {0, 0, 0, 0};
+
+
+    printf("%d\n", strlen(argv[1]));
+
+
+    memcpy(v, argv[1], 8);
+
+    printf("0x%08x 0x%08x\n", v[0], v[1]);
 
     encrypt(v, k);
 
-    printf("%d\n", v[0]);
-    printf("%d\n", v[1]);
+    printf("0x%08x 0x%08x\n", v[0], v[1]);
+
+    decrypt(v, k);
+
+    printf("0x%08x 0x%08x\n", v[0], v[1]);
 }
